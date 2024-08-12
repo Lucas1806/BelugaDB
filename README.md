@@ -1,2 +1,2 @@
-# BelugaDB
+# BelugaDB - Projeto da Mentoria
  
