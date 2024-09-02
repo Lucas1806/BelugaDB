@@ -1,7 +1,9 @@
 ﻿using ConsoleApp1.Entidades;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace ConsoleApp1
 {
@@ -9,57 +11,102 @@ namespace ConsoleApp1
     {
         private static int globalIdCounter = 1;
         private static readonly string padraoTelefone = @"^\d{8,9}$";
+        private static Vendedor? vendedor;
         public static readonly Dictionary<int, Cliente> clientes = [];
         public static readonly Dictionary<int, Vendedor> vendedores = [];
         public static readonly Dictionary<int, Produto> produtos = [];
         public static readonly Dictionary<int, Venda> vendas = [];
        
-
+        public static void PressioneParaSair()
+        {
+            PressioneParaSair();
+            Console.ReadKey();
+        }
+        public static bool Confirmar()
+        {
+            Console.WriteLine("Você tem certeza que deseja fazer isso? Tecle Y para confirmar");
+            string? entrada = Console.ReadLine();
+            return string.IsNullOrWhiteSpace(entrada) == false && entrada.Trim().ToLower() == "y";
+        }
+        /* public static void Acao(bool confirmar)
+        {
+            if (confirmar)
+            {
+                Console.WriteLine("Operação realizada!");
+            }
+            else
+            {
+                Console.WriteLine("Operação cancelada!");
+            }
+        }*/
         public static void CadastroCliente()
         {
             Console.WriteLine("Insira o Nome: ");
             string? nome = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(nome))
             {
-                Console.WriteLine("Nome não pode ser nulo ou vazio. Por favor, insira um nome válido");
+                Console.WriteLine("Nome não pode ser nulo ou vazio. Por favor, insira um nome válido ou digite sair para cancelar");
                 nome = Console.ReadLine();
+                if (nome == "sair")
+                {
+                    return;
+                }
             }
             Console.WriteLine("Insira o Ano de Nascimento: ");
             string? entrada = Console.ReadLine();
             _ = int.TryParse(entrada, out int _anoNascimento);
             while (_anoNascimento < 1 || _anoNascimento >= DateTime.Now.Year)
             {
-                Console.WriteLine("Ano de Nascimento deve ser anterior ao atual. Por favor, insira um ano de nascimento válido");
+                Console.WriteLine("Ano de Nascimento deve ser anterior ao atual. Por favor, insira um ano de nascimento válido ou digite sair para cancelar");
                 entrada = Console.ReadLine();
+                if (entrada == "sair")
+                {
+                    return;
+                }
                 _ = int.TryParse(entrada, out _anoNascimento);
             }
             Console.WriteLine("Insira o E-mail: ");
             string? email = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
             {
-                Console.WriteLine("E-mail inválido. Por favor, insira um e-mail válido");
+                Console.WriteLine("E-mail inválido. Por favor, insira um e-mail válido ou digite sair para cancelar");
                 email = Console.ReadLine();
+                if (email == "sair")
+                {
+                    return;
+                }
             }
             Console.WriteLine("Insira o Telefone: ");
             string? telefone = Console.ReadLine();
             string padraoTelefone = @"^\d{8,9}$";
             while (string.IsNullOrWhiteSpace(telefone) || !Regex.IsMatch(telefone, padraoTelefone))
             {
-                Console.WriteLine("Telefone inválido, o telefone deve conter apenas os dígitos. Por favor, insira um telefone válido");
+                Console.WriteLine("Telefone inválido, o telefone deve conter apenas os dígitos. Por favor, insira um telefone válido ou digite sair para cancelar");
                 telefone = Console.ReadLine();
+                if (telefone == "sair")
+                {
+                    return;
+                }
             }
             Console.WriteLine("Insira o Endereço: ");
             string? endereco = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(endereco) || endereco.Length < 5)
             {
-                Console.WriteLine("Endereço inválido, o endereço deve conter pelo menos 5 caracteres. Por favor, insira um Endereço válido");
+                Console.WriteLine("Endereço inválido, o endereço deve conter pelo menos 5 caracteres. Por favor, insira um Endereço válido ou digite sair para cancelar");
                 endereco = Console.ReadLine();
+                if (endereco == "sair")
+                {
+                    return;
+                }
             }
-            Cliente cliente = new(nome, _anoNascimento, email, telefone, endereco);
-            clientes.Add(globalIdCounter++, cliente);
+            string genero = "";
+            string cpf = "";
+            string rg = "";
+            globalIdCounter++;
+            Cliente cliente = new(globalIdCounter, nome, _anoNascimento, email, telefone, endereco, genero, rg, cpf);
+            clientes.Add(globalIdCounter, cliente);
             Console.WriteLine("Cliente " + nome + "cadastrado com sucesso!");
-            Console.WriteLine("Pressione qualquer tecla para voltar");
-            Console.ReadKey();
+            PressioneParaSair();
             // nome, anoNascimento, email, telefone, endereco
         }
         public static void RemoverCliente()
@@ -71,15 +118,21 @@ namespace ConsoleApp1
                 if (clientes.TryGetValue(_id, out var cliente))
                 {
                     Console.WriteLine("O cliente:" + _id + ". Nome: " + cliente.Nome + " - E-mail: " + cliente.Email + "será excluído!");
-                    clientes.Remove(_id);
-                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                    Console.ReadKey();
+                    if (Confirmar())
+                    {
+                        clientes.Remove(_id);
+                        Console.WriteLine("Cliente removido!");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Operação cancelada");
+                    }
+                    PressioneParaSair();
                 }
                 else
                 {
                     Console.WriteLine("Cliente não encontrado!");
-                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                    Console.ReadKey();
+                    PressioneParaSair();
                 }
             }
             
@@ -91,44 +144,86 @@ namespace ConsoleApp1
             string? nome = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(nome))
             {
-                Console.WriteLine("Nome não pode ser nulo ou vazio. Por favor, insira um nome válido");
+                Console.WriteLine("Nome não pode ser nulo ou vazio. Por favor, insira um nome válido ou digite sair para cancelar");
                 nome = Console.ReadLine();
+                if (nome == "sair")
+                {
+                    return;
+                }
             }
             Console.WriteLine("Insira o Ano de Nascimento: ");
             string? entrada = Console.ReadLine();
             _ = int.TryParse(entrada, out int _anoNascimento);
             while (_anoNascimento < 1 || _anoNascimento >= DateTime.Now.Year)
             {
-                Console.WriteLine("Ano de Nascimento deve ser anterior ao atual. Por favor, insira um ano de nascimento válido");
+                Console.WriteLine("Ano de Nascimento deve ser anterior ao atual. Por favor, insira um ano de nascimento válido ou digite sair para cancelar");
                 entrada = Console.ReadLine();
+                if (entrada == "sair")
+                {
+                    return;
+                }
                 _ = int.TryParse(entrada, out _anoNascimento);
             }
             Console.WriteLine("Insira o E-mail: ");
             string? email = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(email) || !email.Contains('@'))
             {
-                Console.WriteLine("E-mail inválido. Por favor, insira um e-mail válido");
+                Console.WriteLine("E-mail inválido. Por favor, insira um e-mail válido ou digite sair para cancelar");
                 email = Console.ReadLine();
+                if (email == "sair")
+                {
+                    return;
+                }
             }
             Console.WriteLine("Insira o Telefone: ");
             string? telefone = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(telefone) || !Regex.IsMatch(telefone, pattern: padraoTelefone))
             {
-                Console.WriteLine("Telefone inválido, o telefone deve conter apenas os dígitos. Por favor, insira um telefone válido");
+                Console.WriteLine("Telefone inválido, o telefone deve conter apenas os dígitos. Por favor, insira um telefone válido ou digite sair para cancelar");
                 telefone = Console.ReadLine();
+                if (telefone == "sair")
+                {
+                    return;
+                }
             }
             Console.WriteLine("Insira o Endereço: ");
             string? endereco = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(endereco) || endereco.Length < 5)
             {
-                Console.WriteLine("Endereço inválido, o endereço deve conter pelo menos 5 caracteres. Por favor, insira um Endereço válido");
+                Console.WriteLine("Endereço inválido, o endereço deve conter pelo menos 5 caracteres. Por favor, insira um Endereço válido ou digite sair para cancelar");
                 endereco = Console.ReadLine();
+                if (endereco == "sair")
+                {
+                    return;
+                }
             }
-            Vendedor vendedor = new(nome, _anoNascimento, email, telefone, endereco);
-            vendedores.Add(globalIdCounter++, vendedor);
+            Console.WriteLine("Insira um Nome para o vendedor executar  login: ");
+            string? usuario = Console.ReadLine();
+            while (string.IsNullOrWhiteSpace(usuario))
+            {
+                Console.WriteLine("Usuário não pode ser nulo ou vazio. Por favor, insira um nome de usuário válido ou digite sair para cancelar");
+                usuario = Console.ReadLine();
+                if (usuario == "sair")
+                {
+                    return;
+                }
+            }
+            Console.WriteLine("Crie uma senha: ");
+            string? senha = Console.ReadLine();
+            while (string.IsNullOrWhiteSpace(senha) || senha.Length < 4 || senha.Length > 10)
+            {
+                Console.WriteLine("A senha deve conter ao menos 4 caracteres e no máximo 10. Por favor, crie uma senha válida ou digite sair para cancelar");
+                senha = Console.ReadLine();
+                if (senha == "sair")
+                {
+                    return;
+                }
+            }
+            globalIdCounter++;
+            Vendedor vendedor = new(globalIdCounter, nome, _anoNascimento, email, telefone, endereco, usuario, senha);
+            vendedores.Add(globalIdCounter, vendedor);
             Console.WriteLine("Vendedor" + nome + "cadastrado com sucesso!");
-            Console.WriteLine("Pressione qualquer tecla para voltar");
-            Console.ReadKey();
+            PressioneParaSair();
             // nome, anoNascimento, email, telefone, endereco
         }
         public static void RemoverVendedor()
@@ -139,15 +234,21 @@ namespace ConsoleApp1
             if (vendedores.TryGetValue(_id, out var vendedor))
             {
                 Console.WriteLine("O Vendedor:" + _id + ". Nome: " + vendedor.Nome + " - E-mail: " + vendedor.Email + "será excluído!");
-                clientes.Remove(_id);
-                Console.WriteLine("Pressione qualquer tecla para voltar");
-                Console.ReadKey();
+                if (Confirmar())
+                {
+                    vendedores.Remove(_id);
+                    Console.WriteLine("Vendedor removido!");
+                }
+                else
+                {
+                    Console.WriteLine("Operação cancelada");
+                }
+                PressioneParaSair();
             }
             else
             {
                 Console.WriteLine("Vendedor não encontrado!");
-                Console.WriteLine("Pressione qualquer tecla para voltar");
-                Console.ReadKey();
+                PressioneParaSair();
             }
         }
 
@@ -157,8 +258,12 @@ namespace ConsoleApp1
             string? nome = Console.ReadLine();
             while (string.IsNullOrWhiteSpace(nome))
             {
-                Console.WriteLine("Nome não pode ser nulo ou vazio. Por favor, insira um nome válido");
+                Console.WriteLine("Nome não pode ser nulo ou vazio. Por favor, insira um nome válido ou digite sair para cancelar");
                 nome = Console.ReadLine();
+                if (nome == "sair")
+                {
+                    return;
+                }
             }
             Console.WriteLine("Insira o nome do Grupo do Produto: ");
             string? produtoGrupo = Console.ReadLine();            
@@ -168,14 +273,19 @@ namespace ConsoleApp1
             int _quantidade;
             while (!int.TryParse(entrada, out _quantidade) || _quantidade < 0)
             {
-                Console.WriteLine("Quantidade inválida. Por favor, insira uma quantidade válida");
+                Console.WriteLine("Quantidade inválida. Por favor, insira uma quantidade válida ou digite sair para cancelar");
                 entrada = Console.ReadLine();
+                if (entrada == "sair")
+                {
+                    return;
+                }
                 _ = int.TryParse(entrada, out _quantidade);
             }
-            Produto produto = new(produtoGrupo, nome, _quantidade);
-            produtos.Add(globalIdCounter++, produto);
+            globalIdCounter++;
+            Produto produto = new(globalIdCounter, produtoGrupo, nome, _quantidade);
+            produtos.Add(globalIdCounter, produto);
             Console.WriteLine("Produto" + nome + "cadastrado com sucesso!");
-            Console.WriteLine("Pressione qualquer tecla para voltar");
+            PressioneParaSair();
             Console.ReadKey();
             // string? produtoGrupo, string? nome, int quantidade
         }
@@ -187,40 +297,112 @@ namespace ConsoleApp1
             if (produtos.TryGetValue(_id, out var produto))
             {
                 Console.WriteLine("O produto:" + _id + ". Nome: " + produto.Nome + "será excluído!");
-                clientes.Remove(_id);
-                Console.WriteLine("Pressione qualquer tecla para voltar");
-                Console.ReadKey();
+                if (Confirmar())
+                {
+                    produtos.Remove(_id);
+                    Console.WriteLine("Produto removido!");
+                }
+                else
+                {
+                    Console.WriteLine("Operação cancelada");
+                }
+                PressioneParaSair();
             }
             else
             {
                 Console.WriteLine("Produto não encontrado!");
-                Console.WriteLine("Pressione qualquer tecla para voltar");
+                PressioneParaSair();
                 Console.ReadKey();
             }
         }
 
         public static void ExecutarVenda()
         {
-            Console.WriteLine("Insira o Id do vendedor: ");
-            string? entrada = Console.ReadLine();
-            _ = int.TryParse(entrada, out int _vendedorId);
+            //Cliente
             Console.WriteLine("Insira o Id do cliente: ");
-            entrada = Console.ReadLine();
-            _ = int.TryParse(entrada, out int _clienteId);
+            string? entrada = Console.ReadLine();
+            bool v = int.TryParse(entrada, out int _clienteId);
+            Cliente? cliente;
+            while (!v || !clientes.TryGetValue(_clienteId, out cliente))
+            {
+                Console.WriteLine("Cliente não encontrado. Por favor, insira um id válido ou digite sair para cancelar");
+                entrada = Console.ReadLine();
+                if (entrada == "sair")
+                {
+                    return;
+                }
+                v = int.TryParse(entrada, out _clienteId);
+            }
+            /*{
+                if (clientes.TryGetValue(_id, out var cliente))
+                {
+                    Console.WriteLine("O cliente:" + _id + ". Nome: " + cliente.Nome + " - E-mail: " + cliente.Email + "será excluído!");
+                    clientes.Remove(_id);
+                    PressioneParaSair();
+                }
+                else
+                {
+                    Console.WriteLine("Cliente não encontrado!");
+                    PressioneParaSair();
+                }
+            }*/
+            //Produto
             Console.WriteLine("Insira o Id do produto: ");
             entrada = Console.ReadLine();
-            _ = int.TryParse(entrada, out int _produtoId);
-            Venda venda = new(_produtoId, _clienteId, _vendedorId);
+            v = int.TryParse(entrada, out int _produtoId);
+            int estoque = 0;
+            Produto? produto;
+            while (!v || !produtos.TryGetValue(_produtoId, out produto))
+            {
+                Console.WriteLine("Produto não encontrado. Por favor, insira um id válido ou digite sair para cancelar");
+                entrada = Console.ReadLine();
+                if (entrada == "sair")
+                {
+                    return;
+                }
+                v = int.TryParse(entrada, out _produtoId);
+                if (produtos.TryGetValue(_produtoId, out produto))
+                {
+                    estoque = produto.Quantidade;
+                    if (estoque < 1)
+                    {
+                        Console.WriteLine("Produto indisponível para venda! Por favor, insira o id de outro produto ou digite sair para cancelar\"");
+                        entrada = Console.ReadLine();
+                        if (entrada == "sair")
+                        {
+                            return;
+                        }
+                    }
+                }
+            }
+            int quantidade;
+            while (!int.TryParse(entrada, out quantidade) || quantidade < 0 || quantidade > estoque)
+            {
+                if (quantidade > estoque)
+                {
+                    Console.WriteLine("Estoque atual: " + estoque + "! Por favor, insira uma quantidade válida ou digite sair para cancelar");
+                }
+                else
+                {
+                    Console.WriteLine("Quantidade inválida. Por favor, insira uma quantidade válida ou digite sair para cancelar");
+                }
+                entrada = Console.ReadLine();
+                if (entrada == "sair")
+                {
+                    return;
+                }
+            }
+            produto.Quantidade = estoque - quantidade;
+            globalIdCounter++;
+            Venda venda = new(globalIdCounter, _produtoId, quantidade, _clienteId, vendedor!.Id);
             
-            //pedir quantidade do produto
             //ListaProduto[_produtoId].Quantidade--;
             //produtos(_produtoId).Value.Quantidade--;
-            produtos.TryGetValue(_produtoId, out var produto);
-            produtos.Remove(_produtoId);
-            produtos.TryAdd(_produtoId, produto);
+            //produtos.Remove(_produtoId);
+            //produtos.TryAdd(_produtoId, produto);
             vendas.Add(globalIdCounter++, venda);
-            Console.WriteLine("Venda " + "" + " criada com sucesso! O vendedor " + "" + " vendeu um " + "" + " para o cliente " + "");
-            Console.WriteLine("Pressione qualquer tecla para voltar");
+            Console.WriteLine("Venda criada com sucesso! O vendedor " + "vendedor.Nome" + " vendeu um " + produto.Nome + " para o cliente " + cliente.Nome);
+            PressioneParaSair();
             Console.ReadKey();
         }
         public static void RemoverVenda()
@@ -236,56 +418,102 @@ namespace ConsoleApp1
                     clienteNome = cliente.Nome;
                 }
                 Console.WriteLine("A venda:" + _id + "para o cliente" + clienteNome + "será excluída!");
-                vendas.Remove(_id);
-                Console.WriteLine("Pressione qualquer tecla para voltar");
-                Console.ReadKey();
+                if (Confirmar())
+                {
+                    vendas.Remove(_id);
+                    Console.WriteLine("Venda removida!");
+                }
+                else
+                {
+                    Console.WriteLine("Operação cancelada");
+                }
+                PressioneParaSair();
             }
             else
             {
                 Console.WriteLine("Venda não encontrada!");
-                Console.WriteLine("Pressione qualquer tecla para voltar");
-                Console.ReadKey();
+                PressioneParaSair();
             }
         }
 
         private static void CreateDeafault()
         {
-            Cliente cliente1 = new("LUCAS AMORIM", 1994, "lucas.amorim.18@gmail.com", "996199322", "Rua Luverci");
-            clientes.Add(globalIdCounter++, cliente1);
+            globalIdCounter++;
+            Cliente cliente1 = new(globalIdCounter, "CELIO SANTOS", 2002, "celio.santos@gmail.com", "996199322", "Alameda Corvinal", "", "", "");
+            clientes.Add(globalIdCounter, cliente1);
 
-            Cliente cliente2 = new("ARNALDO DA SILVA", 2002, "arnaldo.silva@gmail.com", "996199322", "Alameda Abrolhos");
-            clientes.Add(globalIdCounter++, cliente2);
+            globalIdCounter++;
+            Cliente cliente2 = new(globalIdCounter, "ARNALDO DA SILVA", 2002, "arnaldo.silva@gmail.com", "996199322", "Alameda Abrolhos", "", "", "");
+            clientes.Add(globalIdCounter, cliente2);
 
-            Cliente cliente3 = new("BERNARDO COSTA", 2003, "bernardo.costa@gmail.com", "996199322", "Avenida Bertollini");
-            clientes.Add(globalIdCounter++, cliente3);
+            globalIdCounter++;
+            Cliente cliente3 = new(globalIdCounter, "BERNARDO COSTA", 2003, "bernardo.costa@gmail.com", "996199322", "Avenida Bertollini", "", "", "");
+            clientes.Add(globalIdCounter, cliente3);
 
-            Vendedor vendedor1 = new("TIAGO RODRIGUES", 1994, "tiago.rodr@gmail.com", "996199322", "Rua Tamandaré");
-            vendedores.Add(globalIdCounter++, vendedor1); //instancia antes do metodo
+            globalIdCounter++;
+            Vendedor vendedor1 = new(globalIdCounter, "TIAGO RODRIGUES", 1998, "tiago.rodr@gmail.com", "996199322", "Rua Tamandaré", "tiago", "1234");
+            vendedores.Add(globalIdCounter, vendedor1); //instancia antes do metodo
 
-            Vendedor vendedor2 = new("CELIO SANTOS", 2002, "celio.santos@gmail.com", "996199322", "Alameda Corvinal");
-            vendedores.Add(globalIdCounter++, vendedor2);
+            globalIdCounter++;
+            Vendedor vendedor2 = new(globalIdCounter, "LUCAS AMORIM", 1994, "lucas.amorim.18@gmail.com", "996199322", "Rua Luverci", "lucas", "1234");
+            vendedores.Add(globalIdCounter, vendedor2);
 
-            Vendedor vendedor3 = new("DANILO OLIVEIRA", 2003, "danilo.oliv@gmail.com", "996199322", "Avenida Diamantina");
-            vendedores.Add(globalIdCounter++, vendedor3);
+            globalIdCounter++;
+            Vendedor vendedor3 = new(globalIdCounter,  "CAIO CAMBOIM", 2003, "caio.c@gmail.com", "996199322", "Avenida Diamantina", "caio", "1234");
+            vendedores.Add(globalIdCounter, vendedor3);
 
+            globalIdCounter++;
+            Produto produto1 = new(globalIdCounter, "Carro", "Civic", 11);
+            produtos.Add(globalIdCounter, produto1); //instancia antes do metodo
 
-            Produto produto1 = new("Carro", "Civic", 11);
-            produtos.Add(globalIdCounter++, produto1); //instancia antes do metodo
+            globalIdCounter++;
+            Produto produto2 = new(globalIdCounter, "Carro", "Passat", 8);
+            produtos.Add(globalIdCounter, produto2);
 
-            Produto produto2 = new("Carro", "Passat", 8);
-            produtos.Add(globalIdCounter++, produto2);
+            globalIdCounter++;
+            Produto produto3 = new(globalIdCounter, "Carro", "Omega", 4);
+            produtos.Add(globalIdCounter, produto3);
 
-            Produto produto3 = new("Carro", "Omega", 4);
-            produtos.Add(globalIdCounter++, produto3);
+        }
 
-            //imprimi a lista para testar
-            
-            
+        public static Vendedor? EncontrarVendedorPorUsuario(string usuario, string senha)
+        {
+            if (vendedores != null)
+            {
+                return vendedores.Values.FirstOrDefault(v => v.Usuario.Equals(usuario, StringComparison.InvariantCultureIgnoreCase) && v.Senha.Equals(senha));
+            }
+            return null;
+        }
+        public static void Login()
+        {
+            while (true)
+            {
+                Console.Write("Digite seu nome de usuário: ");
+                string? usuario = Console.ReadLine();
+                while (string.IsNullOrWhiteSpace(usuario))
+                {
+                    Console.WriteLine("Usuario não pode ser nulo ou vazio. Por favor, insira um usuário válido");
+                    usuario = Console.ReadLine();
+                }
+                Console.Write("Digite sua senha: ");
+                string? senha = Console.ReadLine();
+                vendedor = EncontrarVendedorPorUsuario(usuario, senha);
+                if (vendedor != null)
+                {
+                    Console.WriteLine("Login do vendedor " + vendedor.Nome + " realizado!");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Usuário e senha inválidos!");
+                }
+            }
             
         }
         public static void Main()
         {
             CreateDeafault();
+            Login();
             bool exitLoop;
 
             while (true)
@@ -325,7 +553,7 @@ namespace ConsoleApp1
                                         Console.WriteLine(client.Key + ". Nome: " + client.Value.Nome + " - Idade: " + (DateTime.Now.Year - client.Value.AnoNascimento).ToString() + " - E-mail: " + client.Value.Email);
                                     }
                                     Console.WriteLine("\n");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
+                                    PressioneParaSair();
                                     Console.ReadKey();
                                     break;
                                 case 2:
@@ -333,13 +561,11 @@ namespace ConsoleApp1
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de clientes em implementação");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 4:
                                     RemoverCliente();
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 5:
                                     exitLoop = true;
@@ -372,21 +598,18 @@ namespace ConsoleApp1
                                         Console.WriteLine(seller.Key + ". Nome: " + seller.Value.Nome + " - Idade: " + (DateTime.Now.Year - seller.Value.AnoNascimento).ToString() + " - E-mail: " + seller.Value.Email);
                                     }
                                     Console.WriteLine("\n");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 2:
                                     CadastroVendedor();
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de vendedores em implementação");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 4:
                                     RemoverVendedor();
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 5:
                                     exitLoop = true;
@@ -420,7 +643,7 @@ namespace ConsoleApp1
                                         Console.WriteLine(product.Key + ". Produto: " + product.Value.ProdutoGrupo + " - Nome: " + product.Value.Nome + " - Quantidade: " + product.Value.Quantidade);
                                     }
                                     Console.WriteLine("\n");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
+                                    PressioneParaSair();
                                     Console.ReadKey();
                                     break;
                                 case 2:
@@ -428,12 +651,12 @@ namespace ConsoleApp1
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de produtos em implementação");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
+                                    PressioneParaSair();
                                     Console.ReadKey();
                                     break;
                                 case 4:
                                     RemoverProduto();
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
+                                    PressioneParaSair();
                                     Console.ReadKey();
                                     break;
                                 case 5:
@@ -468,21 +691,18 @@ namespace ConsoleApp1
                                         Console.WriteLine(sale.Key + ". Produto: " + sale.Value.ProdutoId + " - Cliente: " + sale.Value.ClienteId + " - Vendedor: " + sale.Value.VendedorId);
                                     }
                                     Console.WriteLine("\n");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 2:
                                     ExecutarVenda();
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de vendas em implementação");
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 4:
                                     RemoverVenda();
-                                    Console.WriteLine("Pressione qualquer tecla para voltar");
-                                    Console.ReadKey();
+                                    PressioneParaSair();
                                     break;
                                 case 5:
                                     exitLoop = true;

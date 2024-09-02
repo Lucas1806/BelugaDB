@@ -6,10 +6,9 @@ using System.Threading.Tasks;
 
 namespace ConsoleApp1.Entidades
 {
-    public class Produto(string? produtoGrupo, string? nome, int quantidade)
+    public class Produto(int id, string? produtoGrupo, string? nome, int quantidade)
     {
-        private static int produtoIdCounter = 0;
-        public int Id { get; set; } = produtoIdCounter++;
+        public int Id { get; set; } = id;
         public string? ProdutoGrupo { get; set; } = produtoGrupo;
         public string? Nome { get; set; } = nome;
         public int Quantidade { get; set; } = quantidade;
