@@ -1,93 +1,280 @@
 ﻿using ConsoleApp1.Entidades;
 using System;
 using System.Collections.Generic;
+using System.Security.Cryptography;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace ConsoleApp1
 {
-    //subir no git (colocar gitIgnore)
-    //deixar public
-
-
     public class Program
     {
-        public static void ExecutarVenda(List<Venda> listaVendas, List<Vendedor> listaVendedor, List<Produto> listaProduto, List<Cliente> listaCliente)
-        {
-            Console.WriteLine("Insira o Id do vendedor: ");
-            string? entrada = Console.ReadLine();
-            _ = int.TryParse(entrada, out int _vendedorId);
-            Console.WriteLine("Insira o Id do cliente: ");
-            entrada = Console.ReadLine();
-            _ = int.TryParse(entrada, out int _clienteId);
-            Console.WriteLine("Insira o Id do produto: ");
-            entrada = Console.ReadLine();
-            _ = int.TryParse(entrada, out int _produtoId);
-            Venda venda = new(_produtoId, _clienteId, _vendedorId);
-            listaVendas.Add(venda);
-            Console.WriteLine("Venda " + venda.Id + " criada com sucesso! O vendedor " + listaVendedor[venda.VendedorId].Nome + " vendeu um " + listaProduto[venda.ProdutoId].Nome + " para o cliente " + listaCliente[venda.ClienteId].Nome);
-        }
+        public static readonly string padraoTelefone = @"^\d{8,9}$";
+        public static Vendedor? vendedor;
 
+        //var cliente = new Cliente(int id, int anoNascimento,);
+        public static void PressioneParaSair()
+        {
+            Console.WriteLine("Aperte qualquer tecla para sair");
+            Console.ReadKey();
+        }
+        public static bool Confirmar()
+        {
+            Console.WriteLine("Você tem certeza que deseja fazer isso? Tecle Y para confirmar");
+            string? entrada = Console.ReadLine();
+            return string.IsNullOrWhiteSpace(entrada) == false && entrada.Trim().ToLower() == "y";
+        }
+        /* public static void Acao(bool confirmar)
+        {
+            if (confirmar)
+            {
+                Console.WriteLine("Operação realizada!");
+            }
+            else
+            {
+                Console.WriteLine("Operação cancelada!");
+            }
+        }*/
+        
+        public static void Login()
+        {
+            while (true)
+            {
+                Console.Write("Digite seu nome de usuário: ");
+                string? usuario = Console.ReadLine();
+                while (string.IsNullOrWhiteSpace(usuario))
+                {
+                    Console.WriteLine("Usuario não pode ser nulo ou vazio. Por favor, insira um usuário válido");
+                    usuario = Console.ReadLine();
+                }
+                Console.Write("Digite sua senha: ");
+                string? senha = Console.ReadLine();
+                vendedor = Vendedor.EncontrarVendedorPorUsuario(usuario, senha);
+                if (vendedor != null)
+                {
+                    Console.WriteLine("Login do vendedor " + vendedor.Nome + " realizado!");
+                    return;
+                }
+                else
+                {
+                    Console.WriteLine("Usuário e senha inválidos!");
+                }
+            }
+            
+        }
         public static void Main()
         {
+            Vendedor.CreateDefualt();
+            Cliente.CreateDefault();
+            Produto.CreateDeafault();
+            Login();
+            bool exitLoop;
 
-            //passo 6: criar lista das intancias a cima
-            //public Cliente(string nome, int anoNascimento, string email, int telefone, string endereco) : base(nome, anoNascimento, email, telefone, endereco)
-            List<Cliente> listaCliente = [];
-
-            Cliente cliente1 = new("LUCAS AMORIM", 1994, "lucas.amorim.18@gmail.com", "996199322", "Rua Luverci");
-            listaCliente.Add(cliente1); //instancia antes do metodo
-
-            Cliente cliente2 = new("ARNALDO DA SILVA", 2002, "arnaldo.silva@gmail.com", "996199322", "Alameda Abrolhos");
-            listaCliente.Add(cliente2);
-
-            Cliente cliente3 = new("BERNARDO COSTA", 2003, "bernardo.costa@gmail.com", "996199322", "Avenida Bertollini");
-            listaCliente.Add(cliente3);
-
-            List<Vendedor> listaVendedor = [];
-
-            Vendedor vendedor1 = new("TIAGO RODRIGUES", 1994, "tiago.rodr@gmail.com", "996199322", "Rua Tamandaré");
-            listaVendedor.Add(vendedor1); //instancia antes do metodo
-
-            Vendedor vendedor2 = new("CELIO SANTOS", 2002, "celio.santos@gmail.com", "996199322", "Alameda Corvinal");
-            listaVendedor.Add(vendedor2);
-
-            Vendedor vendedor3 = new("DANILO OLIVEIRA", 2003, "danilo.oliv@gmail.com", "996199322", "Avenida Diamantina");
-            listaVendedor.Add(vendedor3);
-
-
-            List<Produto> listaProduto = [];
-
-            Produto produto1 = new("Carro", "Civic", 11);
-            listaProduto.Add(produto1); //instancia antes do metodo
-
-            Produto produto2 = new("Carro", "Passat", 8);
-            listaProduto.Add(produto2);
-
-            Produto produto3 = new("Carro", "Omega", 4);
-            listaProduto.Add(produto3);
-
-            List<Venda> listaVendas = [];
-
-            //imprimi a lista para testar
-            Console.WriteLine("Lista de Clientes");
-            foreach (var client in listaCliente)
+            while (true)
             {
-                Console.WriteLine(client.Id + ". Nome: " + client.Nome + " - Idade: " + (DateTime.Now.Year - client.AnoNascimento).ToString() + " - E-mail: " + client.Email);
-            }
-            Console.WriteLine("\n");
-            Console.WriteLine("Lista de Vendedores");
-            foreach (var seller in listaVendedor)
-            {
-                Console.WriteLine(seller.Id + ". Nome: " + seller.Nome + " - Idade: " + (DateTime.Now.Year - seller.AnoNascimento).ToString() + " - E-mail: " + seller.Email);
-            }
-            Console.WriteLine("\n");
-            Console.WriteLine("Lista de Produtos");
-            foreach (var product in listaProduto)
-            {
-                Console.WriteLine(product.Id + ". Produto: " + product.ProdutoGrupo + " - Nome: " + product.Nome + " - Quantidade: " + product.Quantidade);
-            }
-            Console.WriteLine("\n");
+                exitLoop = false;
+                Console.Clear();
+                Console.WriteLine("Bem-vindo! Escolha um módulo:");
+                Console.WriteLine("1. Clientes");
+                Console.WriteLine("2. Vendedores");
+                Console.WriteLine("3. Produtos");
+                Console.WriteLine("4. Vendas");
+                Console.WriteLine("5. Sair do programa");
+                string? entrada = Console.ReadLine();
+                _ = int.TryParse(entrada, out int opcao);
 
-            ExecutarVenda(listaVendas, listaVendedor, listaProduto, listaCliente);
+                switch (opcao)
+                {
+                    case 1: //clientes
+                        while (!exitLoop)
+                        {
+                            Console.Clear();
+                            Console.WriteLine("Módulo de Clientes. Escolha uma ação");
+                            Console.WriteLine("1. Visualizar clientes");
+                            Console.WriteLine("2. Cadastrar cliente");
+                            Console.WriteLine("3. Atualizar cliente");
+                            Console.WriteLine("4. Excluir cliente");
+                            Console.WriteLine("5. Sair do módulo de Clientes");
+                            entrada = Console.ReadLine();
+                            _ = int.TryParse(entrada, out opcao);
+
+                            switch (opcao)
+                            {
+                                case 1:
+                                    Console.WriteLine("Lista de Clientes");
+                                    foreach (var client in Cliente.clientes)
+                                    {
+                                        Console.WriteLine(client.Key + ". Nome: " + client.Value.Nome + " - Idade: " + (DateTime.Now.Year - client.Value.AnoNascimento).ToString() + " - E-mail: " + client.Value.Email);
+                                    }
+                                    Console.WriteLine("\n");
+                                    PressioneParaSair();
+                                    Console.ReadKey();
+                                    break;
+                                case 2:
+                                    Cliente.Cadastro();
+                                    PressioneParaSair();
+                                    break;
+                                case 3:
+                                    Console.WriteLine("Atualização de clientes em implementação");
+                                    PressioneParaSair();
+                                    break;
+                                case 4:
+                                    Cliente.Remover();
+                                    PressioneParaSair();
+                                    break;
+                                case 5:
+                                    exitLoop = true;
+                                    break;
+                                default:
+                                    Console.WriteLine("Ação inválida");
+                                    Console.ReadKey();
+                                    break;
+                            }
+                        }
+                        break;
+                    case 2: //vendedores
+                        while (!exitLoop)
+                        {
+                            Console.Clear();
+                            Console.WriteLine("Módulo de Vendedores. Escolha uma ação");
+                            Console.WriteLine("1. Visualizar vendedores");
+                            Console.WriteLine("2. Cadastrar vendedor");
+                            Console.WriteLine("3. Atualizar vendedor");
+                            Console.WriteLine("4. Excluir vendedor");
+                            Console.WriteLine("5. Sair do módulo de Vendedores");
+                            entrada = Console.ReadLine();
+                            _ = int.TryParse(entrada, out opcao);
+
+                            switch (opcao)
+                            {
+                                case 1:
+                                    foreach (var seller in Vendedor.vendedores)
+                                    {
+                                        Console.WriteLine(seller.Key + ". Nome: " + seller.Value.Nome + " - Idade: " + (DateTime.Now.Year - seller.Value.AnoNascimento).ToString() + " - E-mail: " + seller.Value.Email);
+                                    }
+                                    Console.WriteLine("\n");
+                                    PressioneParaSair();
+                                    break;
+                                case 2:
+                                    Vendedor.CadastroVendedor();
+                                    break;
+                                case 3:
+                                    Console.WriteLine("Atualização de vendedores em implementação");
+                                    PressioneParaSair();
+                                    break;
+                                case 4:
+                                    Vendedor.RemoverVendedor();
+                                    PressioneParaSair();
+                                    break;
+                                case 5:
+                                    exitLoop = true;
+                                    break;
+                                default:
+                                    Console.WriteLine("Ação inválida");
+                                    Console.ReadKey();
+                                    break;
+                            }
+                        }
+                        break;
+                    case 3: //produtos
+                        while (!exitLoop)
+                        {
+                            Console.Clear();
+                            Console.WriteLine("Módulo de Produtos. Escolha uma ação");
+                            Console.WriteLine("1. Visualizar produtos");
+                            Console.WriteLine("2. Cadastrar produto");
+                            Console.WriteLine("3. Atualizar produto");
+                            Console.WriteLine("4. Excluir produto");
+                            Console.WriteLine("5. Sair do módulo de Produtos");
+                            entrada = Console.ReadLine();
+                            _ = int.TryParse(entrada, out opcao);
+
+                            switch (opcao)
+                            {
+                                case 1:
+                                    Console.WriteLine("Lista de Produtos");
+                                    foreach (var product in Produto.produtos)
+                                    {
+                                        Console.WriteLine(product.Key + ". Produto: " + product.Value.ProdutoGrupo + " - Nome: " + product.Value.Nome + " - Quantidade: " + product.Value.Quantidade);
+                                    }
+                                    Console.WriteLine("\n");
+                                    PressioneParaSair();
+                                    break;
+                                case 2:
+                                    Produto.Cadastro();
+                                    PressioneParaSair();
+                                    break;
+                                case 3:
+                                    Console.WriteLine("Atualização de produtos em implementação");
+                                    PressioneParaSair();
+                                    break;
+                                case 4:
+                                    Produto.Remover();
+                                    PressioneParaSair();
+                                    break;
+                                case 5:
+                                    exitLoop = true;
+                                    break;
+                                default:
+                                    Console.WriteLine("Ação inválida");
+                                    PressioneParaSair();
+                                    break;
+                            }
+                        }
+                        break;
+                    case 4:
+                        while (!exitLoop)
+                        {
+                            Console.Clear();
+                            Console.WriteLine("Módulo de Vendas. Escolha uma ação");
+                            Console.WriteLine("1. Visualizar vendas");
+                            Console.WriteLine("2. Cadastrar venda");
+                            Console.WriteLine("3. Atualizar venda");
+                            Console.WriteLine("4. Excluir venda");
+                            Console.WriteLine("5. Sair do módulo de Vendas");
+                            entrada = Console.ReadLine();
+                            _ = int.TryParse(entrada, out opcao);
+
+                            switch (opcao)
+                            {
+                                case 1:
+                                    Console.WriteLine("Lista de Vendas");
+                                    foreach (var sale in Venda.vendas)
+                                    {
+                                        Console.WriteLine(sale.Key + ". Produto: " + sale.Value.ProdutoId + " - Cliente: " + sale.Value.ClienteId + " - Vendedor: " + sale.Value.VendedorId);
+                                    }
+                                    Console.WriteLine("\n");
+                                    PressioneParaSair();
+                                    break;
+                                case 2:
+                                    Venda.ExecutarVenda();
+                                    break;
+                                case 3:
+                                    Console.WriteLine("Atualização de vendas em implementação");
+                                    PressioneParaSair();
+                                    break;
+                                case 4:
+                                    Venda.Remover();
+                                    PressioneParaSair();
+                                    break;
+                                case 5:
+                                    exitLoop = true;
+                                    break;
+                                default:
+                                    Console.WriteLine("Ação inválida");
+                                    Console.ReadKey();
+                                    break;
+                            }
+                        }
+                        break;
+                    case 5: return;
+                    default:
+                        Console.WriteLine("Ação inválida");
+                        Console.ReadKey();
+                        break;
+                }
+            }
+
 
 
         }
