@@ -1,29 +1,19 @@
 ﻿using ConsoleApp1.Entidades;
-using System;
-using System.Collections.Generic;
-using System.Security.Cryptography;
-using System.Text.RegularExpressions;
-using System.Linq;
 
 namespace ConsoleApp1
 {
     public class Program
     {
         public static readonly string padraoTelefone = @"^\d{8,9}$";
-        public static Vendedor? vendedor;
+        private static Vendedor? vendedor;
+        private static readonly GerCliente gerCliente = new();
+        private static readonly GerVendedor gerVendedor = new();
+        private static readonly GerProduto gerProduto = new();
+        private static readonly GerVenda gerVenda = new();
+
+        public static Vendedor? Vendedor { get => vendedor; set => vendedor = value; }
 
         //var cliente = new Cliente(int id, int anoNascimento,);
-        public static void PressioneParaSair()
-        {
-            Console.WriteLine("Aperte qualquer tecla para sair");
-            Console.ReadKey();
-        }
-        public static bool Confirmar()
-        {
-            Console.WriteLine("Você tem certeza que deseja fazer isso? Tecle Y para confirmar");
-            string? entrada = Console.ReadLine();
-            return string.IsNullOrWhiteSpace(entrada) == false && entrada.Trim().ToLower() == "y";
-        }
         /* public static void Acao(bool confirmar)
         {
             if (confirmar)
@@ -35,7 +25,7 @@ namespace ConsoleApp1
                 Console.WriteLine("Operação cancelada!");
             }
         }*/
-        
+
         public static void Login()
         {
             while (true)
@@ -49,10 +39,10 @@ namespace ConsoleApp1
                 }
                 Console.Write("Digite sua senha: ");
                 string? senha = Console.ReadLine();
-                vendedor = Vendedor.EncontrarVendedorPorUsuario(usuario, senha);
-                if (vendedor != null)
+                Vendedor = gerVendedor.EncontrarVendedorPorUsuario(usuario, senha);
+                if (Vendedor != null)
                 {
-                    Console.WriteLine("Login do vendedor " + vendedor.Nome + " realizado!");
+                    Console.WriteLine("Login do vendedor " + Vendedor.Nome + " realizado!");
                     return;
                 }
                 else
@@ -60,13 +50,10 @@ namespace ConsoleApp1
                     Console.WriteLine("Usuário e senha inválidos!");
                 }
             }
-            
+
         }
         public static void Main()
         {
-            Vendedor.CreateDefualt();
-            Cliente.CreateDefault();
-            Produto.CreateDeafault();
             Login();
             bool exitLoop;
 
@@ -102,25 +89,25 @@ namespace ConsoleApp1
                             {
                                 case 1:
                                     Console.WriteLine("Lista de Clientes");
-                                    foreach (var client in Cliente.clientes)
+                                    foreach (var client in gerCliente.GetAll())
                                     {
                                         Console.WriteLine(client.Key + ". Nome: " + client.Value.Nome + " - Idade: " + (DateTime.Now.Year - client.Value.AnoNascimento).ToString() + " - E-mail: " + client.Value.Email);
                                     }
                                     Console.WriteLine("\n");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     Console.ReadKey();
                                     break;
                                 case 2:
-                                    Cliente.Cadastro();
-                                    PressioneParaSair();
+                                    gerCliente.Cadastro();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de clientes em implementação");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 4:
-                                    Cliente.Remover();
-                                    PressioneParaSair();
+                                    gerCliente.Remover();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 5:
                                     exitLoop = true;
@@ -148,23 +135,23 @@ namespace ConsoleApp1
                             switch (opcao)
                             {
                                 case 1:
-                                    foreach (var seller in Vendedor.vendedores)
+                                    foreach (var seller in gerVendedor.vendedores)
                                     {
                                         Console.WriteLine(seller.Key + ". Nome: " + seller.Value.Nome + " - Idade: " + (DateTime.Now.Year - seller.Value.AnoNascimento).ToString() + " - E-mail: " + seller.Value.Email);
                                     }
                                     Console.WriteLine("\n");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 2:
-                                    Vendedor.CadastroVendedor();
+                                    gerVendedor.Cadastro();
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de vendedores em implementação");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 4:
-                                    Vendedor.RemoverVendedor();
-                                    PressioneParaSair();
+                                    gerVendedor.Remover();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 5:
                                     exitLoop = true;
@@ -193,31 +180,31 @@ namespace ConsoleApp1
                             {
                                 case 1:
                                     Console.WriteLine("Lista de Produtos");
-                                    foreach (var product in Produto.produtos)
+                                    foreach (var product in gerProduto.produtos)
                                     {
                                         Console.WriteLine(product.Key + ". Produto: " + product.Value.ProdutoGrupo + " - Nome: " + product.Value.Nome + " - Quantidade: " + product.Value.Quantidade);
                                     }
                                     Console.WriteLine("\n");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 2:
-                                    Produto.Cadastro();
-                                    PressioneParaSair();
+                                    gerProduto.Cadastro();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de produtos em implementação");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 4:
-                                    Produto.Remover();
-                                    PressioneParaSair();
+                                    gerProduto.Remover();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 5:
                                     exitLoop = true;
                                     break;
                                 default:
                                     Console.WriteLine("Ação inválida");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                             }
                         }
@@ -239,23 +226,23 @@ namespace ConsoleApp1
                             {
                                 case 1:
                                     Console.WriteLine("Lista de Vendas");
-                                    foreach (var sale in Venda.vendas)
+                                    foreach (var sale in gerVenda.vendas)
                                     {
                                         Console.WriteLine(sale.Key + ". Produto: " + sale.Value.ProdutoId + " - Cliente: " + sale.Value.ClienteId + " - Vendedor: " + sale.Value.VendedorId);
                                     }
                                     Console.WriteLine("\n");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 2:
-                                    Venda.ExecutarVenda();
+                                    gerVenda.ExecutarVenda();
                                     break;
                                 case 3:
                                     Console.WriteLine("Atualização de vendas em implementação");
-                                    PressioneParaSair();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 4:
-                                    Venda.Remover();
-                                    PressioneParaSair();
+                                    gerVenda.Remover();
+                                    Interface.PressioneParaSair();
                                     break;
                                 case 5:
                                     exitLoop = true;
