@@ -209,7 +209,7 @@ namespace ConsoleApp1
                             }
                         }
                         break;
-                    case 4:
+                    case 4://vendas
                         while (!exitLoop)
                         {
                             Console.Clear();
@@ -228,7 +228,11 @@ namespace ConsoleApp1
                                     Console.WriteLine("Lista de Vendas");
                                     foreach (var sale in gerVenda.vendas)
                                     {
-                                        Console.WriteLine(sale.Key + ". Produto: " + sale.Value.ProdutoId + " - Cliente: " + sale.Value.ClienteId + " - Vendedor: " + sale.Value.VendedorId);
+                                        Console.WriteLine(sale.Key + ". Cliente: " + sale.Value.ClienteId + " - Vendedor: " + sale.Value.VendedorId);
+                                        foreach(var product in sale.Value.Produtos)
+                                        {
+                                            Console.WriteLine("  " + product.Produto.Id + ". " + product.Produto.Nome + " - Quantidade: " + product.Quantidade);
+                                        }
                                     }
                                     Console.WriteLine("\n");
                                     Interface.PressioneParaSair();

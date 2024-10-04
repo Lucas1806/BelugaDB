@@ -3,7 +3,7 @@
     public class GerVenda
     {
 
-        private int IdCounter = 1;
+        private int IdCounter = 0;
         public readonly Dictionary<int, Venda> vendas = [];
         private static readonly GerCliente gerCliente = new();
         private static readonly GerProduto gerProduto = new();
@@ -54,8 +54,39 @@
                     }
                 }
             }
+            estoque = produto.Quantidade;
             int quantidade;
-            while (!int.TryParse(entrada, out quantidade) || quantidade < 0 || quantidade > estoque)
+            while (true)
+            {
+                Console.WriteLine("Insira a quantidade do prduto: ");
+                entrada = Console.ReadLine();
+                if(int.TryParse(entrada, out quantidade))
+                {
+                    if (quantidade > 0 && quantidade <= estoque)
+                    {
+                        break;
+                    }
+                    else if (quantidade > estoque)
+                    {
+                        Console.WriteLine("Estoque atual: " + estoque + "! Por favor, insira uma quantidade válida ou digite sair para cancelar");
+                    }
+                    else
+                    {
+                        Console.WriteLine("Quantidade inválida. Por favor, insira uma quantidade válida ou digite sair para cancelar");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Entrada inválida. Por favor, insira uma quantidade válida ou digite sair para cancelar");
+                    entrada = Console.ReadLine();
+                    if (entrada == "sair")
+                    {
+                        return;
+                    }
+                }
+                
+            }
+            /* while (!int.TryParse(entrada, out quantidade) || quantidade < 0 || quantidade > estoque)
             {
                 if (quantidade > estoque)
                 {
@@ -70,20 +101,16 @@
                 {
                     return;
                 }
+            } */
+            if (AdicionarItem(_clienteId, _produtoId, quantidade, Program.Vendedor!.Id))
+            {
+                Console.WriteLine("Venda criada com sucesso! O vendedor " + Program.Vendedor.Nome + " vendeu " + quantidade + " " + produto.Nome + " para o cliente " + cliente!.Nome);
             }
-            produto!.Quantidade = estoque - quantidade;
-            IdCounter++;
-            //Vendedor
-            Venda venda = new(IdCounter, _produtoId, quantidade, _clienteId, Program.Vendedor!.Id);
-
-            //ListaProduto[_produtoId].Quantidade--;
-            //produtos(_produtoId).Value.Quantidade--;
-            //produtos.Remove(_produtoId);
-            //produtos.TryAdd(_produtoId, produto);
-            vendas.Add(IdCounter++, venda);
-            Console.WriteLine("Venda criada com sucesso! O vendedor " + "vendedor.Nome" + " vendeu um " + produto.Nome + " para o cliente " + cliente!.Nome);
+            else
+            {
+                Console.WriteLine("Não foi possível criar a venda, verifique o estoque");
+            }
             Interface.PressioneParaSair();
-            Console.ReadKey();
         }
         public void Remover()
         {
@@ -115,6 +142,17 @@
                 Interface.PressioneParaSair();
             }
         }
-        
+        public bool AdicionarItem(int clienteId, int produtoId, int quantidade,int vendedorId)
+        {
+            if (gerProduto.AtualizarEstoqueProduto(produtoId, -quantidade))
+            {
+                IdCounter++;
+                Venda venda = new(IdCounter, clienteId, vendedorId);
+                vendas.Add(IdCounter, venda);
+                return true;
+            }
+            return false;
+
+        }
     }
 }

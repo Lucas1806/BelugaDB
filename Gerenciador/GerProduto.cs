@@ -7,19 +7,19 @@ namespace ConsoleApp1.Entidades
         public GerProduto()
         {
             IdCounter++;
-            Produto produto1 = new(IdCounter, "Carro", "Civic", 11);
+            Produto produto1 = new(IdCounter, "Carro", "Civic", 11, 10.00m);
             produtos.Add(IdCounter, produto1); //instancia antes do metodo
 
             IdCounter++;
-            Produto produto2 = new(IdCounter, "Carro", "Passat", 8);
+            Produto produto2 = new(IdCounter, "Carro", "Passat", 8, 20.00m);
             produtos.Add(IdCounter, produto2);
 
             IdCounter++;
-            Produto produto3 = new(IdCounter, "Carro", "Omega", 4);
+            Produto produto3 = new(IdCounter, "Carro", "Omega", 4, 30.00m);
             produtos.Add(IdCounter, produto3);
 
         }
-        private int IdCounter = 1;
+        private int IdCounter = 0;
         
         public  readonly Dictionary<int, Produto> produtos = [];
         public Produto? EncontrarPeloId(int id)
@@ -59,8 +59,20 @@ namespace ConsoleApp1.Entidades
                 }
                 _ = int.TryParse(entrada, out _quantidade);
             }
+            //insira o preco
+            decimal preco;
+            while (!decimal.TryParse(entrada, out preco) || preco < 0)
+            {
+                Console.WriteLine("Preço inválido. Por favor, insira um preço válido ou digite sair para cancelar");
+                entrada = Console.ReadLine();
+                if (entrada == "sair")
+                {
+                    return;
+                }
+                _ = decimal.TryParse(entrada, out preco);
+            }
             IdCounter++;
-            Produto produto = new(IdCounter, produtoGrupo, nome, _quantidade);
+            Produto produto = new(IdCounter, produtoGrupo, nome, _quantidade, preco);
             produtos.Add(IdCounter, produto);
             Console.WriteLine("Produto" + nome + "cadastrado com sucesso!");
             // string? produtoGrupo, string? nome, int quantidade
@@ -91,6 +103,10 @@ namespace ConsoleApp1.Entidades
                 Console.ReadKey();
             }
         }
-        
+        public bool AtualizarEstoqueProduto(int produtoId, int quantidade)
+        {
+            if (produtos.TryGetValue(produtoId, out var produto)) return produto.AtualizarEstoque(quantidade);
+            return false;
+        }
     }
 }

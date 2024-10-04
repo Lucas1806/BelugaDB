@@ -18,7 +18,7 @@ namespace ConsoleApp1.Entidades
             Vendedor vendedor3 = new(IdCounter, "CAIO CAMBOIM", 2003, "caio.c@gmail.com", "996199322", "Avenida Diamantina", "caio", "1234");
             vendedores.Add(IdCounter, vendedor3);
         }
-        private int IdCounter = 1;
+        private int IdCounter = 0;
         public readonly Dictionary<int, Vendedor> vendedores = [];
         public void Cadastro()
         {

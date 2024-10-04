@@ -19,7 +19,7 @@ namespace ConsoleApp1.Entidades
             Cliente cliente3 = new(IdCounter, "BERNARDO COSTA", 2003, "bernardo.costa@gmail.com", "996199322", "Avenida Bertollini", "", "", "");
             clientes.Add(IdCounter, cliente3);
         }
-        private int IdCounter = 1;
+        private int IdCounter = 0;
         public readonly Dictionary<int, Cliente> clientes = [];
         public Cliente? EncontrarPeloId(int id)
         {
